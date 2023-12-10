@@ -1,47 +1,94 @@
+def makeStringIntoList(lines, line_num):
+    line = lines[line_num]
+    line = line.rstrip()
+    info_map = [int(element) for element in line.split()]
+    return line, info_map
+
+def getSeed(seeds, seed_num):
+    i = 0
+    for seed in seeds:
+        while i < seed_num:
+            i += 1
+            break
+        else:
+            break
+    return seed
+
+
 f = open("input.txt", "r")
 
-location = 0
-seeds = []
+seeds = {}
+line_num = 0
+seed_num = 0
+which_one = 0
 
-information_lists = {}
-type_of_thing = ""
+lines = f.readlines()
+#print(lines)
 
-going_though_information = False
-
-for line in f:
+while line_num < len(lines):
+    line = lines[line_num] 
     line = line.rstrip()
 
-    if not going_though_information:
-
-        if "seeds: " in line:
-            line = line.replace("seeds: ", "")
-            seeds_str = line.split()
-            seeds = [int(num) for num in seeds_str]
-            #print(seeds)
-        if line == "":
-            going_though_information = False
-        if "map:" in line:
-            line = line.replace(" map:", "")
-            type_of_thing = line
-            information_lists[line] = {}
-            going_though_information = True
-    else:
-        if line == "":
-            going_though_information = False
+    if "seeds: " in line:
+        line = line.replace("seeds: ", "")
+        seeds_str = line.split()
+        for seed in seeds_str:
+            seeds[int(seed)] = []
+        line_num += 1
+        line, info_map = makeStringIntoList(lines, line_num)
+    #first get which number corresponds and is closest to number we are trying to match
+    if line == "" or (" " in line and "map" not in line):
+        if " " in line:
+            line_num += 0
         else:
-            information_str = line.split()
-            information_int = [int(num) for num in information_str]
-            i = 0
-            dic = information_lists[type_of_thing]
-            while i < information_int[2]:
-                dic[information_int[1]+i] = information_int[0]+i
-                #print(information_lists)
-                i += 1
-            information_lists[type_of_thing] = dic
+            line_num += 2
+        line, info_map = makeStringIntoList(lines, line_num)
+        seed = getSeed(seeds, seed_num)
+        to_use = [0, 0, 0]
+        if len(seeds[seed]) == 0:
+            search = seed
+        else:
+            last_index = len(seeds[seed]) - 1
+            search = seeds[seed][last_index]
+        while line != "":
+            if search >= info_map[1]:
+                if (info_map[1] >= to_use[1]) and (info_map[1] + info_map[2] >= search):
+                    to_use = info_map
+            if line_num+1 < len(lines):
+                line_num += 1
+                #print(line_num)
+                line, info_map = makeStringIntoList(lines, line_num)
+            else:
+                break
+        #when the number is found we see so we find the matching number
+        if to_use[1] + to_use[2] >= search:
+            difference = search - to_use[1]
+            corresponding = to_use[0] + difference
+            seeds[seed].append(corresponding)
+        else:
+            corresponding = search
+            seeds[seed].append(corresponding)
+
+        print(seeds)
+
+        if len(seeds[seed]) == 7:
+            seed_num += 1
+            line_num = 0
+            if (seed_num == len(seeds)):
+                break
+        #print(lower_map)
+
+    line_num += 1
+
+
+location = 9999999999999999999999
+
+for key, value in seeds.items():
+
+    last_index = len(seeds[key]) - 1
+    candidate = seeds[key][last_index]
+    if candidate < location:
+        location = candidate
         
 
-print(information_lists)
-    
-        
-
-print (location)
+print(location)
